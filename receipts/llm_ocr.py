@@ -43,7 +43,14 @@ def extract_receipt_data_with_openrouter(image_path):
                     "content": [
                         {
                             "type": "text",
-                            "text": "Analyze the receipt image and extract the store name, date of purchase, and the final total amount. The date should be in YYYY-MM-DD format. The total amount should be a decimal number without the dolar sign. Return the result as a clean JSON object with the keys 'store', 'date_of_purchase', and 'total_amount'."
+                            "text": 'Analyze the receipt image and extract the store name, \
+                                    date of purchase, the final total amount, and a list of \
+                                    all line items. Each line item should be an object with \
+                                    "description" and "price" keys. Return the result as a \
+                                    clean JSON object with the keys "store", "date_of_purchase", \
+                                    "total_amount", and "line_items". Dates should be in YYYY-MM-DD \
+                                    format. Price and total mount should be a decimal number without \
+                                    the currency symbol.'
                         },
                         {
                             "type": "image_url",

@@ -7,6 +7,18 @@
     <p>Total Amount: {{ receipt.total_amount }}</p>
     <p>Category: {{ receipt.category }}</p>
     <p>Uploaded At: {{ receipt.uploaded_at }}</p>
+
+    <h3>Line Items:</h3>
+    {% if receipt.line_items.all %}
+        <ul>
+            {% for item in receipt.line_items.all %}
+                <li>{{ item.description }} - {{ item.price }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No line items extracted.</p>
+    {% endif %}
+
     {% if receipt.image %}
         <img src="{{ receipt.image.url }}" alt="Receipt Image" width="300">
     {% endif %}

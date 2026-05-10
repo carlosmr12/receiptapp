@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from .forms import ReceiptUploadForm
 from .llm_ocr import extract_receipt_data_with_openrouter
-from .models import Receipt
+from .models import Receipt, LineItem
 
 def upload_receipt(request):
     if request.method == 'POST':
@@ -18,6 +18,15 @@ def upload_receipt(request):
                 receipt.date_of_purchase = extracted_data.get('date_of_purchase')
                 receipt.total_amount = extracted_data.get('total_amount')
                 receipt.save()
+
+                # Process line items
+                line_items_data = extracted_data.get('line_items', [])
+                for item_data in line_items_data:
+                    LineItem.objects.create(
+                        receipt=receipt,
+                        description=item_data.get('description'),
+                        price=item_data.get('price')
+                    )
 
             return redirect('receipt_list')  # Redirect to a list view after upload
     else:
