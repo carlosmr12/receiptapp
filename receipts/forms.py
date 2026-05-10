@@ -5,3 +5,4 @@ class ReceiptUploadForm(forms.ModelForm):
     class Meta:
         model = Receipt
         fields = ['image', 'category']
+        exclude = ['user']

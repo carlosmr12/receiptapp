@@ -7,7 +7,10 @@ def upload_receipt(request):
     if request.method == 'POST':
         form = ReceiptUploadForm(request.POST, request.FILES)
         if form.is_valid():
-            receipt = form.save()
+            receipt = form.save(commit=False)
+            receipt.user = request.user # Assign the current user
+            receipt.save()
+            form.save_m2m() # Save ManyToMany data for the form (e.g., categories)
 
             # Perform OCR with LLM
             image_path = receipt.image.path
