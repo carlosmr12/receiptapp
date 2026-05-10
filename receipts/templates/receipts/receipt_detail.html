@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Receipt Details</h2>
+    <p>Store: {{ receipt.store }}</p>
+    <p>Date of Purchase: {{ receipt.date_of_purchase }}</p>
+    <p>Total Amount: {{ receipt.total_amount }}</p>
+    <p>Category: {{ receipt.category }}</p>
+    <p>Uploaded At: {{ receipt.uploaded_at }}</p>
+    {% if receipt.image %}
+        <img src="{{ receipt.image.url }}" alt="Receipt Image" width="300">
+    {% endif %}
+    <br>
+    <a href="{% url 'receipt_list' %}">Back to List</a>
+{% endblock %}

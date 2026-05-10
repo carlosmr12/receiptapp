@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Receipt List</h2>
+    <a href="{% url 'upload_receipt' %}">Upload New Receipt</a>
+    <ul>
+        {% for receipt in receipts %}
+            <li>
+                <a href="{% url 'receipt_detail' receipt.id %}">
+                    {{ receipt.store }} - {{ receipt.date_of_purchase }} - {{ receipt.total_amount }}
+                </a>
+            </li>
+        {% empty %}
+            <li>No receipts yet.</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
