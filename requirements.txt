@@ -1,0 +1,15 @@
+Django==6.0.4
+gunicorn==26.0.0
+numpy==2.4.4
+openai==2.36.0
+pandas==3.0.2
+pillow==12.2.0
+plotly==6.7.0
+pydantic==2.13.4
+pydantic_core==2.46.4
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.2
+setuptools==82.0.1
+tqdm==4.67.3
+typing-inspection==0.4.2
+typing_extensions==4.15.0
