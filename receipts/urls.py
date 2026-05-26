@@ -5,4 +5,5 @@ urlpatterns = [
     path('upload/', views.upload_receipt, name='upload_receipt'),
     path('list/', views.receipt_list, name='receipt_list'),
     path('<int:pk>/', views.receipt_detail, name='receipt_detail'),
+    path('dashboard/', views.dashboard_view, name='dashboard'),
 ]
