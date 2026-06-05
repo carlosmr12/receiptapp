@@ -7,7 +7,6 @@
     <title>Receipt App</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/dataTables.bootstrap4.min.css"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'pikaday.css' %}">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
@@ -35,38 +34,9 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
-    <script src="{% static 'pikaday.js' %}"></script>
     <script>
         $(document).ready(function() {
             $('#receiptTable').DataTable();
-
-            var startDatePicker = new Pikaday({
-                field: document.getElementById('start-date'),
-                format: 'YYYY-MM-DD',
-                toString(date, format) {
-                    const day = date.getDate();
-                    const month = date.getMonth() + 1;
-                    const year = date.getFullYear();
-                    return `${year}-${month < 10 ? '0' + month : month}-${day < 10 ? '0' + day : day}`;
-                },
-                onSelect: function() {
-                    // Form submission is now handled by the 'Apply Filters' button
-                }
-            });
-
-            var endDatePicker = new Pikaday({
-                field: document.getElementById('end-date'),
-                format: 'YYYY-MM-DD',
-                toString(date, format) {
-                    const day = date.getDate();
-                    const month = date.getMonth() + 1;
-                    const year = date.getFullYear();
-                    return `${year}-${month < 10 ? '0' + month : month}-${day < 10 ? '0' + day : day}`;
-                },
-                onSelect: function() {
-                    // Form submission is now handled by the 'Apply Filters' button
-                }
-            });
         });
     </script>
 </body>

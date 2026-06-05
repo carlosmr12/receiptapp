@@ -7,11 +7,11 @@
         <div class="form-row align-items-center">
             <div class="col-auto">
                 <label class="sr-only" for="start-date">Start Date</label>
-                <input type="text" class="form-control mb-2" id="start-date" name="start_date" placeholder="Start Date" value="{{ request.GET.start_date|default:'' }}">
+                <input type="date" class="form-control mb-2" id="start-date" name="start_date" placeholder="Start Date" value="{{ request.GET.start_date|default:'' }}">
             </div>
             <div class="col-auto">
                 <label class="sr-only" for="end-date">End Date</label>
-                <input type="text" class="form-control mb-2" id="end-date" name="end_date" placeholder="End Date" value="{{ request.GET.end_date|default:'' }}">
+                <input type="date" class="form-control mb-2" id="end-date" name="end_date" placeholder="End Date" value="{{ request.GET.end_date|default:'' }}">
             </div>
             {% if request.user.is_superuser %}
             <div class="col-auto">
