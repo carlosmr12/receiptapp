@@ -13,6 +13,12 @@
             <label for="id_category">Category:</label>
             {{ form.category }}
         </div>
+        {% if is_superuser %}
+            <div class="form-group">
+                <label for="id_user">User:</label>
+                {{ form.user }}
+            </div>
+        {% endif %}
         <button type="submit" class="btn btn-primary">Upload</button>
     </form>
 {% endblock %}

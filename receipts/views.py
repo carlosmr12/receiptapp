@@ -13,7 +13,10 @@ def upload_receipt(request):
         form = ReceiptUploadForm(request.POST, request.FILES)
         if form.is_valid():
             receipt = form.save(commit=False)
-            receipt.user = request.user # Assign the current user
+            if request.user.is_superuser and form.cleaned_data['user']:
+                receipt.user = form.cleaned_data['user']
+            else:
+                receipt.user = request.user # Assign the current user
             receipt.save()
             form.save_m2m() # Save ManyToMany data for the form (e.g., categories)
 
@@ -39,7 +42,7 @@ def upload_receipt(request):
             return redirect('receipt_list')  # Redirect to a list view after upload
     else:
         form = ReceiptUploadForm()
-    return render(request, 'receipts/upload_receipt.html', {'form': form})
+    return render(request, 'receipts/upload_receipt.html', {'form': form, 'is_superuser': request.user.is_superuser})
 
 def receipt_list(request):
     receipts = Receipt.objects.select_related('category', 'user').all().order_by('-uploaded_at')
