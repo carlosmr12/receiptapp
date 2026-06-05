@@ -91,11 +91,69 @@ def dashboard_view(request):
     pie_chart_html = generate_expenses_by_category_pie(receipts_queryset)
     bar_chart_html = generate_spending_over_time_bar(receipts_queryset, period=period)
 
+    # Calculate expenses per user
+    expenses_by_user = receipts_queryset.values('user__username', 'user__id').annotate(total_spent=Sum('total_amount'))
+    total_overall_spent = receipts_queryset.aggregate(total=Sum('total_amount'))['total'] or 0
+
+    # Initialize a dictionary to hold user balances
+    user_balances = {user['user__username']: {'id': user['user__id'], 'spent': user['total_spent'], 'balance': 0} for user in expenses_by_user}
+
+    num_users_in_filter = len(expenses_by_user)
+    if num_users_in_filter > 0:
+        average_per_user = total_overall_spent / num_users_in_filter
+    else:
+        average_per_user = 0
+
+    # Calculate balances for all users in the filter
+    for username, data in user_balances.items():
+        user_balances[username]['balance'] = data['spent'] - average_per_user
+
+    # Determine who pays whom (only if multiple users are involved and 'All Users' is selected)
+    payment_instructions = []
+    if num_users_in_filter > 1 and ('all' in selected_user_ids or (request.user.is_superuser and not selected_user_ids)):
+        # Create a copy of user_balances for payment calculation to avoid modifying the original
+        temp_user_balances = {k: v.copy() for k, v in user_balances.items()}
+
+        debtors = sorted([(u, d['balance']) for u, d in temp_user_balances.items() if d['balance'] < 0], key=lambda x: x[1])
+        creditors = sorted([(u, d['balance']) for u, d in temp_user_balances.items() if d['balance'] > 0], key=lambda x: x[1], reverse=True)
+
+        while debtors and creditors:
+            debtor_name, debt_amount = debtors[0]
+            creditor_name, credit_amount = creditors[0]
+
+            # Amount to settle in this transaction
+            settle_amount = min(abs(debt_amount), credit_amount)
+
+            payment_instructions.append({
+                'payer': debtor_name,
+                'receiver': creditor_name,
+                'amount': settle_amount
+            })
+
+            # Update balances in the temporary dictionary
+            temp_user_balances[debtor_name]['balance'] += settle_amount
+            temp_user_balances[creditor_name]['balance'] -= settle_amount
+
+            # Remove settled parties
+            if round(temp_user_balances[debtor_name]['balance'], 2) == 0:
+                debtors.pop(0)
+            if round(temp_user_balances[creditor_name]['balance'], 2) == 0:
+                creditors.pop(0)
+
+    show_settlement_table = False
+    if user_balances and (selected_user_ids and 'all' in selected_user_ids or (request.user.is_superuser and not selected_user_ids)):
+        show_settlement_table = True
+
     context = {
         'pie_chart': pie_chart_html,
         'bar_chart': bar_chart_html,
         'all_users': all_users if request.user.is_superuser else [],
         'selected_user_ids': [int(uid) for uid in selected_user_ids if uid != 'all'],
         'selected_period': period,
+        'user_balances': user_balances,
+        'payment_instructions': payment_instructions,
+        'total_overall_spent': total_overall_spent,
+        'average_per_user': average_per_user if num_users_in_filter > 0 else 0,
+        'show_settlement_table': show_settlement_table,
     }
     return render(request, 'receipts/dashboard.html', context)
