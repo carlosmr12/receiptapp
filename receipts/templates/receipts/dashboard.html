@@ -3,17 +3,15 @@
 {% block content %}
     <h2>Expense Dashboard</h2>
 
-    <form method="get" class="mb-4">
+    <form method="get" class="mb-4" id="filter-form">
         <div class="form-row align-items-center">
             <div class="col-auto">
-                <label class="sr-only" for="period-select">Period</label>
-                <select class="form-control mb-2" id="period-select" name="period">
-                    <option value="all_time" {% if selected_period == 'all_time' %}selected{% endif %}>All Time</option>
-                    <option value="last_7_days" {% if selected_period == 'last_7_days' %}selected{% endif %}>Last 7 Days</option>
-                    <option value="last_30_days" {% if selected_period == 'last_30_days' %}selected{% endif %}>Last 30 Days</option>
-                    <option value="this_month" {% if selected_period == 'this_month' %}selected{% endif %}>This Month</option>
-                    <option value="this_year" {% if selected_period == 'this_year' %}selected{% endif %}>This Year</option>
-                </select>
+                <label class="sr-only" for="start-date">Start Date</label>
+                <input type="text" class="form-control mb-2" id="start-date" name="start_date" placeholder="Start Date" value="{{ request.GET.start_date|default:'' }}">
+            </div>
+            <div class="col-auto">
+                <label class="sr-only" for="end-date">End Date</label>
+                <input type="text" class="form-control mb-2" id="end-date" name="end_date" placeholder="End Date" value="{{ request.GET.end_date|default:'' }}">
             </div>
             {% if request.user.is_superuser %}
             <div class="col-auto">

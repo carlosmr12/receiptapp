@@ -87,9 +87,20 @@ def dashboard_view(request):
         start_date = today.replace(month=1, day=1)
         receipts_queryset = receipts_queryset.filter(date_of_purchase__gte=start_date)
 
+    # Filter by date range
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
+
+    if start_date_str:
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        receipts_queryset = receipts_queryset.filter(date_of_purchase__gte=start_date)
+    if end_date_str:
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        receipts_queryset = receipts_queryset.filter(date_of_purchase__lte=end_date)
+
     # Generate plots
     pie_chart_html = generate_expenses_by_category_pie(receipts_queryset)
-    bar_chart_html = generate_spending_over_time_bar(receipts_queryset, period=period)
+    bar_chart_html = generate_spending_over_time_bar(receipts_queryset, period='custom') # Pass a custom period for charts
 
     # Calculate expenses per user
     expenses_by_user = receipts_queryset.values('user__username', 'user__id').annotate(total_spent=Sum('total_amount'))
