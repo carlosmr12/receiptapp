@@ -83,9 +83,15 @@ WSGI_APPLICATION = 'receiptapp.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 if 'DATABASE_URL' in os.environ:
-    DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
-    }
+    # If running in the CI/CD pipeline with the proxy, override the host.
+    if os.environ.get('PROXY_RUN'):
+        DATABASES = {
+            'default': dj_database_url.config(conn_max_age=600, host='localhost', port=5432)
+        }
+    else:
+        DATABASES = {
+            'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
+        }
 else:
     DATABASES = {
         'default': {
