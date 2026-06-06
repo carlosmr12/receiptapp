@@ -27,7 +27,18 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dy9*2g*g#j71+a!oo*0j_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*'] # This will be updated later for production
+ALLOWED_HOSTS = []
+
+if not DEBUG:
+    # Add the Cloud Run service URL to allowed hosts
+    SERVICE_URL = os.environ.get('SERVICE_URL')
+    if SERVICE_URL:
+        ALLOWED_HOSTS.append(SERVICE_URL.split('//')[1]) # Get the hostname from the URL
+    CUSTOM_DOMAIN = os.environ.get('CUSTOM_DOMAIN')
+    if CUSTOM_DOMAIN:
+        ALLOWED_HOSTS.append(CUSTOM_DOMAIN)
+else:
+    ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -129,6 +140,8 @@ if not DEBUG:
     STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
     GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
     GS_DEFAULT_ACL = 'publicRead'
+    GS_LOCATION = 'australia-southeast2'
+    STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

@@ -38,6 +38,7 @@ jobs:
           docker push ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
 
       - name: Deploy to Cloud Run
+        id: deploy
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
@@ -47,6 +48,15 @@ jobs:
             --update-env-vars "DEBUG=False" \
             --set-secrets=SECRET_KEY=receiptapp-secret-key:latest,DATABASE_URL=receiptapp-db-url:latest,GS_BUCKET_NAME=receiptapp-gs-bucket-name:latest,OPENROUTER_API_KEY=receiptapp-openrouter-api-key:latest,OPENROUTER_MODEL=receiptapp-openrouter-model:latest \
             --add-cloudsql-instances ${{ secrets.GCP_SQL_INSTANCE_NAME }}
+
+      - name: Set SERVICE_URL output
+        run: echo "SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --platform managed --region ${{ env.REGION }} --format 'value(status.url)')" >> $GITHUB_ENV
+
+      - name: Update service with SERVICE_URL
+        run: |
+          gcloud run services update ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --update-env-vars "SERVICE_URL=${{ env.SERVICE_URL }},CUSTOM_DOMAIN=${{ secrets.CUSTOM_DOMAIN }}"
 
       - name: Run Django Migrations
         run: |
