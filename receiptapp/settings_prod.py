@@ -4,7 +4,8 @@ import os
 import dj_database_url
 from pathlib import Path
 
-print("--- LOADING settings_prod.py ---")
+# --- FORCE PRODUCTION STORAGE BACKEND ---
+STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -70,19 +71,10 @@ db_config['CONN_MAX_AGE'] = 600
 DATABASES = {'default': db_config}
 
 # --- PRODUCTION STATIC FILES ---
-print("--- CONFIGURING PRODUCTION STATICS ---")
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
 STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
 GS_DEFAULT_ACL = 'publicRead'
-
-print(f"--- STATICFILES_STORAGE set to: {STATICFILES_STORAGE} ---")
-print(f"--- GS_BUCKET_NAME is: {GS_BUCKET_NAME} ---")
-
-# --- MEDIA FILES (if needed in prod) ---
-# MEDIA_URL = '/media/'
-# MEDIA_ROOT = BASE_DIR / 'media'
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
