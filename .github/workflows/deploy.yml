@@ -38,7 +38,6 @@ jobs:
           docker push ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
 
       - name: Deploy to Cloud Run
-        id: deploy
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
@@ -49,20 +48,20 @@ jobs:
             --set-secrets=SECRET_KEY=receiptapp-secret-key:latest,DATABASE_URL=receiptapp-db-url:latest,GS_BUCKET_NAME=receiptapp-gs-bucket-name:latest,OPENROUTER_API_KEY=receiptapp-openrouter-api-key:latest,OPENROUTER_MODEL=receiptapp-openrouter-model:latest \
             --add-cloudsql-instances ${{ secrets.GCP_SQL_INSTANCE_NAME }}
 
-      - name: Run Django Migrations
-        run: |
-          gcloud run services update ${{ env.SERVICE_NAME }} \
-            --region ${{ env.REGION }} \
-            --update-env-vars "IS_MIGRATING=true"
-          gcloud run services update ${{ env.SERVICE_NAME }} \
-            --region ${{ env.REGION }} \
-            --remove-env-vars "IS_MIGRATING"
-
-      - name: Collect Static Files
-        run: |
-          gcloud run services update ${{ env.SERVICE_NAME }} \
-            --region ${{ env.REGION }} \
-            --update-env-vars "IS_COLLECTING_STATIC=true"
-          gcloud run services update ${{ env.SERVICE_NAME }} \
-            --region ${{ env.REGION }} \
-            --remove-env-vars "IS_COLLECTING_STATIC"
+      - name: Run Django Management Commands
+        uses: google-github-actions/run-command@v0
+        with:
+          command: |-
+            python manage.py migrate
+            python manage.py collectstatic --noinput
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          service_account: ${{ secrets.GCP_SA_KEY }}
+          secrets: |-
+            SECRET_KEY=receiptapp-secret-key:latest
+            DATABASE_URL=receiptapp-db-url:latest
+            GS_BUCKET_NAME=receiptapp-gs-bucket-name:latest
+            OPENROUTER_API_KEY=receiptapp-openrouter-api-key:latest
+            OPENROUTER_MODEL=receiptapp-openrouter-model:latest
+          env: |-
+            DEBUG=False
+            CUSTOM_DOMAIN=${{ secrets.CUSTOM_DOMAIN }}
