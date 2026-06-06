@@ -62,19 +62,25 @@ jobs:
 
           # Fetch secrets from GCP Secret Manager and export them for this step
           export SECRET_KEY=$(gcloud secrets versions access latest --secret="receiptapp-secret-key")
-          export DATABASE_URL=$(gcloud secrets versions access latest --secret="receiptapp-db-url")
+          DATABASE_URL_SECRET=$(gcloud secrets versions access latest --secret="receiptapp-db-url")
           export GS_BUCKET_NAME=$(gcloud secrets versions access latest --secret="receiptapp-gs-bucket-name")
           export OPENROUTER_API_KEY=$(gcloud secrets versions access latest --secret="receiptapp-openrouter-api-key")
           export OPENROUTER_MODEL=$(gcloud secrets versions access latest --secret="receiptapp-openrouter-model")
           export DEBUG=False
           export CUSTOM_DOMAIN=${{ secrets.CUSTOM_DOMAIN }}
 
+          # Construct a new DB URL for the proxy connection
+          DB_USER=$(echo $DATABASE_URL_SECRET | awk -F'[:/@]' '{print $4}')
+          DB_PASS_ENCODED=$(echo $DATABASE_URL_SECRET | awk -F'[:/@]' '{print $5}')
+          DB_NAME=$(echo $DATABASE_URL_SECRET | awk -F'[:/@]' '{print $6}')
+          export PROXY_DATABASE_URL="postgres://${DB_USER}:${DB_PASS_ENCODED}@localhost:5432/${DB_NAME}"
+
           # Run management commands
           echo "Running Django Migrations..."
-          python manage.py migrate
+          DATABASE_URL=$PROXY_DATABASE_URL python manage.py migrate
 
           echo "Collecting Static Files..."
-          python manage.py collectstatic --noinput
+          DATABASE_URL=$PROXY_DATABASE_URL python manage.py collectstatic --noinput
 
           # Stop the proxy
           kill $PROXY_PID
