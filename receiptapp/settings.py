@@ -30,16 +30,12 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = []
 
 if not DEBUG:
-    # Add the Cloud Run service URL to allowed hosts
-    SERVICE_URL = os.environ.get('SERVICE_URL')
-    if SERVICE_URL:
-        ALLOWED_HOSTS.append(SERVICE_URL.split('//')[1]) # Get the hostname from the URL
+    ALLOWED_HOSTS.append('.a.run.app')
     CUSTOM_DOMAIN = os.environ.get('CUSTOM_DOMAIN')
     if CUSTOM_DOMAIN:
         ALLOWED_HOSTS.append(CUSTOM_DOMAIN)
 else:
     ALLOWED_HOSTS = ['*']
-
 
 # Application definition
 
