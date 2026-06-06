@@ -139,16 +139,5 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Check for our custom environment variable to switch to GCS
-DJANGO_GCS_BUCKET_NAME = os.environ.get('DJANGO_GCS_BUCKET_NAME')
-
-if DJANGO_GCS_BUCKET_NAME:
-    # Production settings: Use Google Cloud Storage
-    STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-    # The django-storages library requires the GS_BUCKET_NAME setting.
-    GS_BUCKET_NAME = DJANGO_GCS_BUCKET_NAME
-    GS_DEFAULT_ACL = 'publicRead'
-    STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
