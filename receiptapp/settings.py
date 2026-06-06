@@ -136,16 +136,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-# Default static URL for development
 STATIC_URL = 'static/'
-# Directory where collectstatic will gather files before uploading
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
+# Check for our custom environment variable to switch to GCS
+DJANGO_GCS_BUCKET_NAME = os.environ.get('DJANGO_GCS_BUCKET_NAME')
 
-if GS_BUCKET_NAME:
+if DJANGO_GCS_BUCKET_NAME:
     # Production settings: Use Google Cloud Storage
     STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+    # The django-storages library requires the GS_BUCKET_NAME setting.
+    GS_BUCKET_NAME = DJANGO_GCS_BUCKET_NAME
     GS_DEFAULT_ACL = 'publicRead'
     STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
 

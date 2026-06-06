@@ -69,12 +69,12 @@ jobs:
           export DEBUG=False
           export CUSTOM_DOMAIN=${{ secrets.CUSTOM_DOMAIN }}
 
-          # Set the PROXY_RUN flag and run management commands
+          # Set the PROXY_RUN flag and our custom GCS bucket variable, then run management commands
           echo "Running Django Migrations..."
           PROXY_RUN=true python manage.py migrate
 
           echo "Collecting Static Files..."
-          GS_BUCKET_NAME=$GS_BUCKET_NAME PROXY_RUN=true python manage.py collectstatic --noinput
+          DJANGO_GCS_BUCKET_NAME=$GS_BUCKET_NAME PROXY_RUN=true python manage.py collectstatic --noinput
 
           # Stop the proxy
           kill $PROXY_PID
