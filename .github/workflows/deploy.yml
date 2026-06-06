@@ -44,7 +44,7 @@ jobs:
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --update-env-vars "DEBUG=True,CUSTOM_DOMAIN=${{ secrets.CUSTOM_DOMAIN }}" \
+            --update-env-vars "DEBUG=False,CUSTOM_DOMAIN=${{ secrets.CUSTOM_DOMAIN }},DJANGO_SETTINGS_MODULE=receiptapp.settings_prod" \
             --set-secrets=SECRET_KEY=receiptapp-secret-key:latest,DATABASE_URL=receiptapp-db-url:latest,GS_BUCKET_NAME=receiptapp-gs-bucket-name:latest,OPENROUTER_API_KEY=receiptapp-openrouter-api-key:latest,OPENROUTER_MODEL=receiptapp-openrouter-model:latest \
             --add-cloudsql-instances ${{ secrets.GCP_SQL_INSTANCE_NAME }}
 
