@@ -49,19 +49,32 @@ jobs:
             --add-cloudsql-instances ${{ secrets.GCP_SQL_INSTANCE_NAME }}
 
       - name: Run Django Management Commands
-        uses: google-github-actions/run-command@v0
-        with:
-          command: |-
-            python manage.py migrate
-            python manage.py collectstatic --noinput
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
-          service_account: ${{ secrets.GCP_SA_KEY }}
-          secrets: |-
-            SECRET_KEY=receiptapp-secret-key:latest
-            DATABASE_URL=receiptapp-db-url:latest
-            GS_BUCKET_NAME=receiptapp-gs-bucket-name:latest
-            OPENROUTER_API_KEY=receiptapp-openrouter-api-key:latest
-            OPENROUTER_MODEL=receiptapp-openrouter-model:latest
-          env: |-
-            DEBUG=False
-            CUSTOM_DOMAIN=${{ secrets.CUSTOM_DOMAIN }}
+        run: |
+          # Install dependencies on the runner
+          pip install -r requirements.txt
+
+          # Download and start Cloud SQL Auth Proxy
+          wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.0/cloud-sql-proxy.linux.amd64 -O cloud-sql-proxy
+          chmod +x cloud-sql-proxy
+          ./cloud-sql-proxy ${{ secrets.GCP_SQL_INSTANCE_NAME }} &
+          PROXY_PID=$!
+          sleep 5 # Give proxy time to start
+
+          # Fetch secrets from GCP Secret Manager and export them for this step
+          export SECRET_KEY=$(gcloud secrets versions access latest --secret="receiptapp-secret-key")
+          export DATABASE_URL=$(gcloud secrets versions access latest --secret="receiptapp-db-url")
+          export GS_BUCKET_NAME=$(gcloud secrets versions access latest --secret="receiptapp-gs-bucket-name")
+          export OPENROUTER_API_KEY=$(gcloud secrets versions access latest --secret="receiptapp-openrouter-api-key")
+          export OPENROUTER_MODEL=$(gcloud secrets versions access latest --secret="receiptapp-openrouter-model")
+          export DEBUG=False
+          export CUSTOM_DOMAIN=${{ secrets.CUSTOM_DOMAIN }}
+
+          # Run management commands
+          echo "Running Django Migrations..."
+          python manage.py migrate
+
+          echo "Collecting Static Files..."
+          python manage.py collectstatic --noinput
+
+          # Stop the proxy
+          kill $PROXY_PID
