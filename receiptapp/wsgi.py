@@ -1,16 +1,16 @@
 """
-WSGI config for receiptapp project.
-
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
+WSGI project for receiptapp.
 """
 
 import os
-
 from django.core.wsgi import get_wsgi_application
+from django.core.management import execute_from_command_line
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'receiptapp.settings')
 
-application = get_wsgi_application()
+if os.environ.get('IS_MIGRATING') == 'true':
+    execute_from_command_line(['manage.py', 'migrate'])
+elif os.environ.get('IS_COLLECTING_STATIC') == 'true':
+    execute_from_command_line(['manage.py', 'collectstatic', '--noinput'])
+else:
+    application = get_wsgi_application()
