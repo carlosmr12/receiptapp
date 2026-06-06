@@ -83,16 +83,25 @@ WSGI_APPLICATION = 'receiptapp.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 if 'DATABASE_URL' in os.environ:
-    # If running in the CI/CD pipeline with the proxy, override the host.
+    # Parse the database URL from the environment variable
+    db_config = dj_database_url.parse(os.environ['DATABASE_URL'])
+
+    # If running in the CI/CD pipeline with the proxy, override host and port
     if os.environ.get('PROXY_RUN'):
-        DATABASES = {
-            'default': dj_database_url.config(conn_max_age=600, host='localhost', port=5432)
-        }
+        db_config['HOST'] = 'localhost'
+        db_config['PORT'] = 5432
+        # SSL is not required when connecting through the proxy
+        db_config.pop('SSL_REQUIRE', None)
     else:
-        DATABASES = {
-            'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
-        }
+        # For the deployed app, require SSL
+        db_config['SSL_REQUIRE'] = True
+
+    # Set max connection age
+    db_config['CONN_MAX_AGE'] = 600
+
+    DATABASES = {'default': db_config}
 else:
+    # Fallback to local SQLite database if DATABASE_URL is not set
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
