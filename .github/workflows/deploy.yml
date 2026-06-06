@@ -69,6 +69,8 @@ jobs:
           export DEBUG=False
           export CUSTOM_DOMAIN=${{ secrets.CUSTOM_DOMAIN }}
 
+          echo "DEBUG: GS_BUCKET_NAME is set to [$GS_BUCKET_NAME]"
+
           # Set the PROXY_RUN flag and run management commands
           echo "Running Django Migrations..."
           PROXY_RUN=true python manage.py migrate
