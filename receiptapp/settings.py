@@ -136,6 +136,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
+# Default static URL for development
+STATIC_URL = 'static/'
+# Directory where collectstatic will gather files before uploading
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
 
 if GS_BUCKET_NAME:
@@ -143,10 +148,6 @@ if GS_BUCKET_NAME:
     STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
     GS_DEFAULT_ACL = 'publicRead'
     STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
-else:
-    # Development settings: Use local static files
-    STATIC_URL = 'static/'
-    STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
