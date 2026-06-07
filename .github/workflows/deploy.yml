@@ -69,12 +69,16 @@ jobs:
           export DEBUG=False
           export CUSTOM_DOMAIN=${{ secrets.CUSTOM_DOMAIN }}
 
-                    # Set the PROXY_RUN flag and run management commands
+          # Set the DJANGO_SETTINGS_MODULE and PROXY_RUN flag
+          export DJANGO_SETTINGS_MODULE=receiptapp.settings_prod
+          export PROXY_RUN=true
+
+          #Run management commands
           echo "Running Django Migrations..."
-          PROXY_RUN=true python manage.py migrate --settings=receiptapp.settings_prod
+          python manage.py migrate
 
           echo "Collecting Static Files..."
-          PROXY_RUN=true python manage.py collectstatic --noinput --settings=receiptapp.settings_prod
+          python manage.py collectstatic --noinput
 
           # Stop the proxy
           kill $PROXY_PID
