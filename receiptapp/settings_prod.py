@@ -16,6 +16,16 @@ CUSTOM_DOMAIN = os.environ.get('CUSTOM_DOMAIN')
 if CUSTOM_DOMAIN:
     ALLOWED_HOSTS.append(CUSTOM_DOMAIN)
 
+# CSRF trusted origins are required for POST requests (e.g., admin login) over HTTPS.
+# Wildcards are supported for subdomains.
+CSRF_TRUSTED_ORIGINS = ['https://*.run.app']
+if CUSTOM_DOMAIN:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{CUSTOM_DOMAIN}')
+
+# Cloud Run terminates SSL and forwards the original protocol in this header.
+# This tells Django the request is secure.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # Application definition
 INSTALLED_APPS = [
     'receipts',
