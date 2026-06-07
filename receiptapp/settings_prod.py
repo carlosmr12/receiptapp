@@ -4,9 +4,6 @@ import os
 import dj_database_url
 from pathlib import Path
 
-# --- FORCE PRODUCTION STORAGE BACKEND ---
-STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -71,10 +68,23 @@ db_config['CONN_MAX_AGE'] = 600
 DATABASES = {'default': db_config}
 
 # --- PRODUCTION STATIC FILES ---
-STATIC_ROOT = BASE_DIR / 'staticfiles'
 GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
-GS_DEFAULT_ACL = 'publicRead'
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+        "OPTIONS": {
+            "bucket_name": GS_BUCKET_NAME,
+            "default_acl": "publicRead",
+            "location": "static",
+        },
+    },
+}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
