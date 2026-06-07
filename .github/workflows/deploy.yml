@@ -8,7 +8,7 @@ on:
 
 env:
   SERVICE_NAME: receiptapp
-  REGION: australia-southeast2
+  REGION: australia-southeast1
 
 jobs:
   deploy:
