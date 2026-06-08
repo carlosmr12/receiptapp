@@ -1,9 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Sum
 from datetime import datetime, timedelta
-from .forms import ReceiptUploadForm
+from .forms import ReceiptUploadForm, ReceiptEditForm, LineItemFormSet, ReceiptEditForm, LineItemFormSet
 from .llm_ocr import extract_receipt_data_with_openrouter
 from .models import Receipt, LineItem
 from .reports import generate_expenses_by_category_pie, generate_spending_over_time_bar
@@ -49,7 +49,7 @@ def upload_receipt(request):
                         price=item_data.get('price')
                     )
 
-            return redirect('receipt_list')  # Redirect to a list view after upload
+            return redirect('edit_receipt', pk=receipt.pk)  # Redirect to edit view after upload
     else:
         form = ReceiptUploadForm()
     return render(request, 'receipts/upload_receipt.html', {'form': form, 'is_superuser': request.user.is_superuser})
@@ -223,3 +223,25 @@ def chat_with_llm(request):
             llm_response = f"Error communicating with the AI: {e}"
 
     return JsonResponse({'llm_response': llm_response})
+
+@login_required
+def edit_receipt(request, pk):
+    receipt = get_object_or_404(Receipt, pk=pk, user=request.user)
+    
+    if request.method == 'POST':
+        form = ReceiptEditForm(request.POST, instance=receipt)
+        formset = LineItemFormSet(request.POST, instance=receipt)
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            return redirect('receipt_list')
+    else:
+        form = ReceiptEditForm(instance=receipt)
+        formset = LineItemFormSet(instance=receipt)
+
+    context = {
+        'form': form,
+        'formset': formset,
+        'receipt': receipt,
+    }
+    return render(request, 'receipts/edit_receipt.html', context)
