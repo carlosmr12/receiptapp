@@ -117,3 +117,7 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
+
+# Session timeout settings
+SESSION_COOKIE_AGE = 2 * 60 * 60  # 2 hours
+SESSION_SAVE_EVERY_REQUEST = True

@@ -141,3 +141,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Session timeout settings
+SESSION_COOKIE_AGE = 2 * 60 * 60  # 2 hours
+SESSION_SAVE_EVERY_REQUEST = True
