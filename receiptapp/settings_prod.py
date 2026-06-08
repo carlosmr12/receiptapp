@@ -77,15 +77,23 @@ else:
 db_config['CONN_MAX_AGE'] = 600
 DATABASES = {'default': db_config}
 
-# --- PRODUCTION STATIC FILES ---
+# --- PRODUCTION STATIC & MEDIA FILES ---
 GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
+MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
 
 STORAGES = {
+    # Uploaded files (receipt images) go to GCS under the 'media/' prefix
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+        "OPTIONS": {
+            "bucket_name": GS_BUCKET_NAME,
+            "default_acl": "publicRead",
+            "location": "media",
+        },
     },
+    # Static files (CSS/JS) go to GCS under the 'static/' prefix
     "staticfiles": {
         "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
         "OPTIONS": {
