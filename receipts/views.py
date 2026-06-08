@@ -31,8 +31,8 @@ def upload_receipt(request):
             form.save_m2m() # Save ManyToMany data for the form (e.g., categories)
 
             # Perform OCR with LLM
-            image_path = receipt.image.path
-            extracted_data = extract_receipt_data_with_openrouter(image_path)
+            image_content = receipt.image.read()
+            extracted_data = extract_receipt_data_with_openrouter(image_content)
 
             if extracted_data:
                 receipt.store = extracted_data.get('store')

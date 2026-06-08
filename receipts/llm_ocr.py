@@ -14,23 +14,25 @@ client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
 )
 
-def resize_and_encode_image(image_path, max_size=(1024, 1024)):
-    """Resizes, converts to JPEG, and base64 encodes an image."""
+def resize_and_encode_image(image_content, max_size=(1024, 1024)):
+    """Resizes, converts to JPEG, and base64 encodes an image from content."""
     try:
-        with Image.open(image_path) as img:
-            img.thumbnail(max_size)
-            # Convert to JPEG to ensure compatibility and reduce size
-            import io
-            buffer = io.BytesIO()
-            img.convert('RGB').save(buffer, format="JPEG")
-            return base64.b64encode(buffer.getvalue()).decode('utf-8')
+        import io
+        from PIL import Image
+        # Open image from in-memory bytes
+        img = Image.open(io.BytesIO(image_content))
+        img.thumbnail(max_size)
+        # Convert to JPEG to ensure compatibility and reduce size
+        buffer = io.BytesIO()
+        img.convert('RGB').save(buffer, format="JPEG")
+        return base64.b64encode(buffer.getvalue()).decode('utf-8')
     except Exception as e:
         print(f"Error processing image: {e}")
         return None
 
-def extract_receipt_data_with_openrouter(image_path):
+def extract_receipt_data_with_openrouter(image_content):
     """Extracts receipt data using a multimodal LLM via OpenRouter."""
-    encoded_image = resize_and_encode_image(image_path)
+    encoded_image = resize_and_encode_image(image_content)
     if not encoded_image:
         return None
 
