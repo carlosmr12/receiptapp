@@ -2,7 +2,7 @@
 
 {% block content %}
     <h2>Upload Receipt</h2>
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="upload-form">
         {% csrf_token %}
         <div class="form-group">
             <label for="id_image">Receipt Image:</label>
@@ -19,6 +19,20 @@
                 {{ form.user }}
             </div>
         {% endif %}
-        <button type="submit" class="btn btn-primary">Upload</button>
+        <button type="submit" class="btn btn-primary" id="upload-button">Upload</button>
+        <div id="loading-spinner" class="spinner-border text-primary" role="status" style="display:none;">
+            <span class="sr-only">Loading...</span>
+        </div>
     </form>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#upload-form').on('submit', function() {
+            $('#upload-button').prop('disabled', true);
+            $('#loading-spinner').show();
+        });
+    });
+</script>
+{% endblock extra_js %}
