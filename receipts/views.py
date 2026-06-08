@@ -199,18 +199,16 @@ def chat_with_llm(request):
             {
                 "role": "system",
                 "content": (
-                    "You are a helpful budget assistant. Your task is to answer user questions "
-                    "based *only* on the provided receipt data. If the answer cannot be found "
-                    "in the data, state that you don't have enough information. "
-                    "Perform calculations accurately if requested. "
-                    "The data is provided as a JSON array of receipt objects. "
-                    "Each receipt has 'store', 'date_of_purchase', 'total_amount', and 'line_items'. "
-                    "Line items have 'description' and 'price'."
+                    "You are a helpful and friendly budget assistant. Your task is to answer user questions "
+                    "based *only* on the provided JSON receipt data. Format your response using Markdown. "
+                    "Use headings, bold text, and bullet points to make the information clear and easy to read. "
+                    "If the answer cannot be found in the data, politely state that you don't have enough information. "
+                    "When performing calculations, provide a clear summary of the total and list the items that contribute to it."
                 )
             },
             {
                 "role": "user",
-                "content": f"Here is the receipt data:\n\n{json.dumps(data_for_llm, indent=2)}\n\nUser's Question: {user_question}"
+                "content": f"Here is the receipt data:\n\n{json.dumps(data_for_llm, indent=2)}\n\n---\nUser's Question: {user_question}"
             }
         ]
 

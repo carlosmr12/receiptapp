@@ -136,7 +136,9 @@
                     },
                     success: function(response) {
                         if (response.llm_response) {
-                            responseText.html(response.llm_response);
+                            var converter = new showdown.Converter({tables: true});
+                            var html = converter.makeHtml(response.llm_response);
+                            responseText.html(html); // Use .html() to render the converted Markdown
                         } else {
                             responseText.text('No response from AI.');
                         }
