@@ -48,12 +48,15 @@
                     <label for="llm-question">What would you like to know?</label>
                     <input type="text" class="form-control" id="llm-question" name="question" placeholder="e.g., How much did I spend on coffee last month?">
                 </div>
-                <button type="submit" class="btn btn-info">Ask AI</button>
+                <button type="submit" class="btn btn-info" id="ask-ai-button">Ask AI</button>
             </form>
             <div id="llm-response-container" class="card mt-3" style="display: none;">
                 <div class="card-header">AI Response</div>
                 <div class="card-body">
                     <p class="card-text" id="llm-response-text"></p>
+                    <div id="llm-loading-spinner" class="spinner-border text-info" role="status" style="display:none;">
+                        <span class="sr-only">Loading...</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -116,9 +119,13 @@
                 var csrfToken = $('[name=csrfmiddlewaretoken]').val();
                 var responseContainer = $('#llm-response-container');
                 var responseText = $('#llm-response-text');
+                var loadingSpinner = $('#llm-loading-spinner');
+                var askAiButton = $('#ask-ai-button');
 
                 responseText.text('Asking AI...');
                 responseContainer.show();
+                loadingSpinner.show(); // Show spinner
+                askAiButton.prop('disabled', true); // Disable button
 
                 $.ajax({
                     url: form.attr('action'),
@@ -129,7 +136,7 @@
                     },
                     success: function(response) {
                         if (response.llm_response) {
-                            responseText.html(response.llm_response); // Use .html() to render potential HTML/Markdown
+                            responseText.html(response.llm_response);
                         } else {
                             responseText.text('No response from AI.');
                         }
@@ -137,6 +144,10 @@
                     error: function(xhr, status, error) {
                         responseText.text('Error: Could not get response from AI.');
                         console.error("AJAX Error: ", status, error, xhr.responseText);
+                    },
+                    complete: function() {
+                        loadingSpinner.hide(); // Hide spinner
+                        askAiButton.prop('disabled', false); // Re-enable button
                     }
                 });
 
