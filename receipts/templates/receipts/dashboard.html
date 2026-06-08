@@ -59,6 +59,49 @@
         </div>
     </div>
 
+    {% if show_settlement_table %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <h3>Expense Settlement</h3>
+                <p>Total Spent: ${{ total_overall_spent|floatformat:2 }}</p>
+                <p>Average per user: ${{ average_per_user|floatformat:2 }}</p>
+
+                <h4>Individual Balances:</h4>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Spent</th>
+                            <th>Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for username, data in user_balances.items %}
+                            <tr>
+                                <td>{{ username }}</td>
+                                <td>${{ data.spent|floatformat:2 }}</td>
+                                <td style="color: {% if data.balance < 0 %}red{% else %}green{% endif %};">${{ data.balance|floatformat:2 }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% if payment_instructions %}
+                    <h4>Payment Instructions:</h4>
+                    <ul class="list-group mb-3">
+                        {% for instruction in payment_instructions %}
+                            <li class="list-group-item">
+                                <strong>{{ instruction.payer }}</strong> needs to pay <strong>{{ instruction.receiver }}</strong> ${{ instruction.amount|floatformat:2 }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No payments needed among selected users for this period.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
 {% endblock %}
 
 {% block extra_js %}
