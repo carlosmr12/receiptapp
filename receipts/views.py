@@ -7,6 +7,16 @@ from .forms import ReceiptUploadForm
 from .llm_ocr import extract_receipt_data_with_openrouter
 from .models import Receipt, LineItem
 from .reports import generate_expenses_by_category_pie, generate_spending_over_time_bar
+from openai import OpenAI
+import os
+import json
+from django.http import JsonResponse
+
+# Initialize the OpenAI client for OpenRouter (re-using from llm_ocr.py)
+client = OpenAI(
+    api_key=os.getenv("OPENROUTER_API_KEY"),
+    base_url="https://openrouter.ai/api/v1",
+)
 
 def upload_receipt(request):
     if request.method == 'POST':
@@ -53,11 +63,12 @@ def receipt_detail(request, pk):
     return render(request, 'receipts/receipt_detail.html', {'receipt': receipt})
 
 @login_required
-def dashboard_view(request):
+def get_dashboard_context(request):
     # Get all users for filtering (only if superuser)
     all_users = User.objects.all()
     selected_user_ids = request.GET.getlist('users')
-    period = request.GET.get('period', 'all_time')
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
 
     # Start with all receipts
     receipts_queryset = Receipt.objects.all()
@@ -70,27 +81,8 @@ def dashboard_view(request):
     elif selected_user_ids and 'all' not in selected_user_ids:
         # Superuser can filter by selected users
         receipts_queryset = receipts_queryset.filter(user__id__in=selected_user_ids)
-    # If 'all' is selected or no users are selected by superuser, show all receipts
-
-    # Filter by date period
-    today = datetime.now().date()
-    if period == 'last_7_days':
-        start_date = today - timedelta(days=7)
-        receipts_queryset = receipts_queryset.filter(date_of_purchase__gte=start_date)
-    elif period == 'last_30_days':
-        start_date = today - timedelta(days=30)
-        receipts_queryset = receipts_queryset.filter(date_of_purchase__gte=start_date)
-    elif period == 'this_month':
-        start_date = today.replace(day=1)
-        receipts_queryset = receipts_queryset.filter(date_of_purchase__gte=start_date)
-    elif period == 'this_year':
-        start_date = today.replace(month=1, day=1)
-        receipts_queryset = receipts_queryset.filter(date_of_purchase__gte=start_date)
 
     # Filter by date range
-    start_date_str = request.GET.get('start_date')
-    end_date_str = request.GET.get('end_date')
-
     if start_date_str:
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
         receipts_queryset = receipts_queryset.filter(date_of_purchase__gte=start_date)
@@ -160,11 +152,76 @@ def dashboard_view(request):
         'bar_chart': bar_chart_html,
         'all_users': all_users if request.user.is_superuser else [],
         'selected_user_ids': [int(uid) for uid in selected_user_ids if uid != 'all'],
-        'selected_period': period,
+        'selected_period': request.GET.get('period', 'all_time'), # Keep original period for display if needed
         'user_balances': user_balances,
         'payment_instructions': payment_instructions,
         'total_overall_spent': total_overall_spent,
         'average_per_user': average_per_user if num_users_in_filter > 0 else 0,
         'show_settlement_table': show_settlement_table,
+        'start_date': start_date_str,
+        'end_date': end_date_str,
     }
+    return context
+
+@login_required
+def dashboard_view(request):
+    context = get_dashboard_context(request)
     return render(request, 'receipts/dashboard.html', context)
+
+@login_required
+def chat_with_llm(request):
+    user_question = request.POST.get('question')
+    llm_response = ""
+
+    if user_question:
+        # Fetch relevant data (e.g., all receipts for the current user)
+        # For simplicity, let's fetch all receipts and line items for the logged-in user.
+        # In a more complex scenario, you might want to filter by date, category, etc.
+        user_receipts = Receipt.objects.filter(user=request.user).order_by('-date_of_purchase')
+
+        data_for_llm = []
+        for receipt in user_receipts:
+            receipt_data = {
+                "store": receipt.store,
+                "date_of_purchase": str(receipt.date_of_purchase),
+                "total_amount": str(receipt.total_amount),
+                "line_items": []
+            }
+            for item in receipt.line_items.all():
+                receipt_data["line_items"].append({
+                    "description": item.description,
+                    "price": str(item.price)
+                })
+            data_for_llm.append(receipt_data)
+
+        # Construct the prompt for the LLM
+        prompt_messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are a helpful budget assistant. Your task is to answer user questions "
+                    "based *only* on the provided receipt data. If the answer cannot be found "
+                    "in the data, state that you don't have enough information. "
+                    "Perform calculations accurately if requested. "
+                    "The data is provided as a JSON array of receipt objects. "
+                    "Each receipt has 'store', 'date_of_purchase', 'total_amount', and 'line_items'. "
+                    "Line items have 'description' and 'price'."
+                )
+            },
+            {
+                "role": "user",
+                "content": f"Here is the receipt data:\n\n{json.dumps(data_for_llm, indent=2)}\n\nUser's Question: {user_question}"
+            }
+        ]
+
+        try:
+            response = client.chat.completions.create(
+                model=os.getenv("OPENROUTER_MODEL"),
+                messages=prompt_messages,
+                temperature=0.2, # Allow some creativity but keep it factual
+            )
+            llm_response = response.choices[0].message.content
+        except Exception as e:
+            llm_response = f"Error communicating with the AI: {e}"
+
+    return JsonResponse({'llm_response': llm_response})
