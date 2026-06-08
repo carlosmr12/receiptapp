@@ -16,12 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView # Import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('receipts/', include('receipts.urls')),
+    path('', RedirectView.as_view(pattern_name='dashboard', permanent=False)), # Redirect root to dashboard
 ]
 
 if settings.DEBUG:
