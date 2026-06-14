@@ -19,7 +19,7 @@
             {% for receipt in receipts %}
             <tr>
                 <td>{{ receipt.store|default:"N/A" }}</td>
-                <td>{{ receipt.date_of_purchase|default:"N/A" }}</td>
+                <td data-order="{{ receipt.date_of_purchase|date:"Y-m-d" }}">{{ receipt.date_of_purchase|default:"N/A" }}</td>
                 <td>{{ receipt.total_amount|default:"N/A" }}</td>
                 <td>{{ receipt.category|default:"N/A" }}</td>
                 <td>{{ receipt.user.username|default:"N/A" }}</td>
