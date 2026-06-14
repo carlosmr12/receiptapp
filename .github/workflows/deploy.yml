@@ -53,13 +53,6 @@ jobs:
           # Install dependencies on the runner
           pip install -r requirements.txt
 
-          # Download and start Cloud SQL Auth Proxy
-          wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.0/cloud-sql-proxy.linux.amd64 -O cloud-sql-proxy
-          chmod +x cloud-sql-proxy
-          ./cloud-sql-proxy ${{ secrets.GCP_SQL_INSTANCE_NAME }} &
-          PROXY_PID=$!
-          sleep 5 # Give proxy time to start
-
           # Fetch secrets from GCP Secret Manager and export them for this step
           export SECRET_KEY=$(gcloud secrets versions access latest --secret="receiptapp-secret-key")
           export DATABASE_URL=$(gcloud secrets versions access latest --secret="receiptapp-db-url")
@@ -69,9 +62,8 @@ jobs:
           export DEBUG=False
           export CUSTOM_DOMAIN=${{ secrets.CUSTOM_DOMAIN }}
 
-          # Set the DJANGO_SETTINGS_MODULE and PROXY_RUN flag
+          # Set the DJANGO_SETTINGS_MODULE
           export DJANGO_SETTINGS_MODULE=receiptapp.settings_prod
-          export PROXY_RUN=true
 
           #Run management commands
           echo "Running Django Migrations..."
@@ -79,6 +71,3 @@ jobs:
 
           echo "Collecting Static Files..."
           python manage.py collectstatic --noinput
-
-          # Stop the proxy
-          kill $PROXY_PID
