@@ -128,7 +128,7 @@ The application is configured for continuous deployment to Google Cloud Run via 
 ### Required GCP Services
 
 *   **Cloud Run:** For running the containerized application.
-*   **Cloud SQL for PostgreSQL:** As the managed database.
+*   **Cloud SQL for PostgreSQL:** As the managed database. Alternatively, for lower-cost personal projects, consider serverless PostgreSQL providers like [Neon](https://neon.tech/) which offer generous free tiers.
 *   **Google Cloud Storage:** For storing uploaded receipt images and static files.
 *   **Artifact Registry:** For storing Docker container images.
 *   **Secret Manager:** For securely storing sensitive information like API keys and database credentials.
